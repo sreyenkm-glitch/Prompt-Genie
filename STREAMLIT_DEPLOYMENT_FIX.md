@@ -5,29 +5,38 @@ The original error `[06:18:04] ❗️ installer returned a non-zero exit code` w
 
 ## ✅ Fixes Applied
 
-### 1. **Python 3.13 Compatible Requirements.txt**
-**Problem**: pydantic-core failed to build on Python 3.13
-**Solution**: Removed pydantic and updated to compatible versions:
+### 1. **Python Version Downgrade**
+**Problem**: Python 3.13 is too new and many packages aren't fully compatible
+**Solution**: Specified Python 3.11 in `runtime.txt` for stable deployment
 
 ```txt
-# Core dependencies for AI Prompt Generator - Python 3.13 compatible
+# runtime.txt
+python-3.11
+```
+
+### 2. **Python 3.11 Compatible Requirements.txt**
+**Problem**: pydantic-core failed to build on Python 3.13
+**Solution**: Removed pydantic and updated to Python 3.11 compatible versions:
+
+```txt
+# Core dependencies for AI Prompt Generator - Python 3.11 compatible
 streamlit==1.28.1
 requests==2.31.0
 python-dotenv==1.0.0
 typing-extensions==4.8.0
 streamlit-option-menu==0.3.6
 streamlit-extras==0.3.6
-pandas==1.5.3
+pandas==2.0.3
 numpy==1.24.3
 pyyaml==6.0.1
 google-generativeai==0.3.2
 ```
 
-### 2. **Removed Problematic Dependencies**
+### 3. **Removed Problematic Dependencies**
 **Problem**: pydantic-core build failures
 **Solution**: Removed pydantic (not used in code) and used conservative versions
 
-### 3. **Made CrewAI Optional**
+### 4. **Made CrewAI Optional**
 **Problem**: `agents/prompt_agents.py` imported CrewAI which caused installation failures
 **Solution**: Added try-except blocks to make CrewAI imports optional:
 
@@ -42,7 +51,7 @@ except ImportError:
     print("Warning: CrewAI dependencies not available. CrewAI agents will be disabled.")
 ```
 
-### 4. **Added Streamlit Configuration**
+### 5. **Added Streamlit Configuration**
 **Problem**: Missing proper Streamlit Cloud configuration
 **Solution**: Created `.streamlit/config.toml`:
 
@@ -63,8 +72,9 @@ gatherUsageStats = false
 
 | File | Changes |
 |------|---------|
-| `requirements.txt` | Removed pydantic, updated to Python 3.13 compatible versions |
-| `requirements_streamlit.txt` | Created alternative conservative requirements |
+| `runtime.txt` | Specified Python 3.11 for stable deployment |
+| `requirements.txt` | Updated to Python 3.11 compatible versions |
+| `requirements_py311.txt` | Created Python 3.11 specific requirements |
 | `agents/prompt_agents.py` | Made imports optional with try-except |
 | `test_backend.py` | Added graceful error handling |
 | `test_deployment.py` | Enhanced testing for deployment |
@@ -78,14 +88,14 @@ All tests pass locally:
 - ✅ Configuration loads correctly
 - ✅ Streamlit config is present
 - ✅ No dependency conflicts
-- ✅ Python 3.13 compatible
+- ✅ Python 3.11 compatible
 
 ## 🚀 Deployment Steps
 
 1. **Push changes to GitHub:**
    ```bash
    git add .
-   git commit -m "Fix Python 3.13 compatibility - remove pydantic"
+   git commit -m "Downgrade to Python 3.11 for stable deployment"
    git push origin main
    ```
 
@@ -106,8 +116,9 @@ All tests pass locally:
 
 ## 🔧 What Works Now
 
+- ✅ **Python Version**: Stable Python 3.11 (not experimental 3.13)
 - ✅ **Main App**: Uses `GeminiPromptGeneratorAgents` (no CrewAI needed)
-- ✅ **Dependencies**: Python 3.13 compatible, lightweight
+- ✅ **Dependencies**: Python 3.11 compatible, lightweight
 - ✅ **Imports**: All essential imports work
 - ✅ **Configuration**: Proper Streamlit Cloud setup
 - ✅ **Testing**: Comprehensive deployment tests
@@ -122,7 +133,7 @@ All tests pass locally:
 
 ## 🎉 Expected Result
 
-Your app should now deploy successfully on Streamlit Cloud without the pydantic-core build error. The main functionality using Google Gemini API will work perfectly.
+Your app should now deploy successfully on Streamlit Cloud using Python 3.11 without any build errors. The main functionality using Google Gemini API will work perfectly.
 
 ## 📞 If Issues Persist
 
@@ -130,4 +141,10 @@ Your app should now deploy successfully on Streamlit Cloud without the pydantic-
 2. Verify environment variables are set correctly
 3. Ensure GitHub repository has all updated files
 4. Try restarting the app in Streamlit Cloud
-5. Use `requirements_streamlit.txt` as alternative if needed
+5. Use `requirements_py311.txt` as alternative if needed
+
+## 🔄 Alternative Python Versions
+
+If Python 3.11 still has issues, you can try:
+- Python 3.10: `python-3.10` in runtime.txt
+- Python 3.9: `python-3.9` in runtime.txt

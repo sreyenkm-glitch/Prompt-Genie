@@ -166,17 +166,16 @@ if st.session_state.workflow_state == 'initial':
                 st.markdown("---")
             
             # Chat input for questions
-            with st.form("initial_mentor_chat_form"):
-                initial_mentor_input = st.text_area(
-                    "Ask your AI mentor:",
-                    placeholder="Need help understanding? Want suggestions? Ask anything!",
-                    height=80,
-                    key="initial_mentor_chat_input"
-                )
-                
-                initial_mentor_submitted = st.form_submit_button("💬 Ask Mentor", type="primary")
-                
-                if initial_mentor_submitted and initial_mentor_input.strip():
+            initial_mentor_input = st.text_area(
+                "Ask your AI mentor:",
+                placeholder="Need help understanding? Want suggestions? Ask anything!",
+                height=80,
+                key="initial_mentor_chat_input"
+            )
+            
+            initial_mentor_submitted = st.button("💬 Ask Mentor", type="primary")
+            
+            if initial_mentor_submitted and initial_mentor_input.strip():
                     # Add user message
                     if not hasattr(st.session_state, 'chat_messages'):
                         st.session_state.chat_messages = []

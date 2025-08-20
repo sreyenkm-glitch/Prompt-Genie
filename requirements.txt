@@ -18,10 +18,5 @@ numpy>=1.24.0
 # File operations
 pyyaml==6.0.1
 
-# Additional dependencies found in code imports
+# Google Gemini API
 google-generativeai>=0.3.0
-
-# CrewAI and LangChain dependencies (for prompt_agents.py)
-crewai>=0.28.0
-langchain>=0.1.0
-langchain-community>=0.0.20

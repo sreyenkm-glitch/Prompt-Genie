@@ -54,6 +54,13 @@ def test_imports():
         return False
     
     try:
+        import google.generativeai
+        print("✅ google-generativeai imported successfully")
+    except ImportError as e:
+        print(f"❌ google-generativeai import failed: {e}")
+        return False
+    
+    try:
         from agents.gemini_agents import GeminiPromptGeneratorAgents
         print("✅ GeminiPromptGeneratorAgents imported successfully")
     except ImportError as e:
@@ -130,6 +137,17 @@ def test_config():
         print(f"❌ Config test failed: {e}")
         return False
 
+def test_streamlit_config():
+    """Test Streamlit configuration"""
+    print("\n🔍 Testing Streamlit configuration...")
+    
+    if os.path.exists('.streamlit/config.toml'):
+        print("✅ .streamlit/config.toml found")
+        return True
+    else:
+        print("❌ .streamlit/config.toml missing")
+        return False
+
 def main():
     """Run all deployment tests"""
     print("🚀 Starting Deployment Tests...\n")
@@ -137,7 +155,8 @@ def main():
     tests = [
         ("Import Tests", test_imports),
         ("Environment Tests", test_environment),
-        ("Configuration Tests", test_config)
+        ("Configuration Tests", test_config),
+        ("Streamlit Config Tests", test_streamlit_config)
     ]
     
     all_passed = True

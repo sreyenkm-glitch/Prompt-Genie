@@ -3,9 +3,15 @@ AI Prompt Generator Agents using CrewAI
 Intelligent agents that dynamically determine prompt requirements and generate structured prompts
 """
 
-from crewai import Agent, Task, Crew, Process
-from langchain_community.llms import Ollama
-from langchain.tools import Tool
+try:
+    from crewai import Agent, Task, Crew, Process
+    from langchain_community.llms import Ollama
+    from langchain.tools import Tool
+    CREWAI_AVAILABLE = True
+except ImportError:
+    CREWAI_AVAILABLE = False
+    print("Warning: CrewAI and LangChain dependencies not available. CrewAI agents will be disabled.")
+
 from typing import Dict, List, Any
 import os
 from dotenv import load_dotenv
@@ -20,6 +26,9 @@ class PromptGeneratorAgents:
     
     def __init__(self):
         """Initialize the agents with Ollama LLM"""
+        if not CREWAI_AVAILABLE:
+            raise ImportError("CrewAI dependencies not available. Please install crewai, langchain, and langchain-community for this functionality.")
+        
         # Initialize Ollama LLM
         self.llm = Ollama(
             model=os.getenv("OLLAMA_MODEL", "llama2"),

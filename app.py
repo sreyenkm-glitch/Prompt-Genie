@@ -19,6 +19,54 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for enhanced UI
+st.markdown("""
+<style>
+    .main-header {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .feature-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+        margin: 1rem 0;
+    }
+    .ai-response {
+        background: #e8f5e8;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin: 1rem 0;
+    }
+    .user-input {
+        background: #fff3cd;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+        margin: 1rem 0;
+    }
+    .stButton > button {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 0.5rem 2rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize session state
 if 'workflow_state' not in st.session_state:
     st.session_state.workflow_state = 'initial'
@@ -125,8 +173,40 @@ with st.sidebar:
         st.session_state.chat_context = {}
         st.rerun()
 
-# Main content
-st.title("🤖 AI Intelligent Prompt Generator")
+# Enhanced Main Header
+st.markdown("""
+<div class="main-header">
+    <h1>🤖 AI Intelligent Prompt Generator</h1>
+    <p style="font-size: 1.2rem; margin: 0;">Advanced AI-Powered Prompt Engineering for Professional Excellence</p>
+</div>
+""", unsafe_allow_html=True)
+
+# Feature Cards
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown("""
+    <div class="feature-card">
+        <h3>🎯 Smart Department Detection</h3>
+        <p>Advanced AI analyzes your request and automatically identifies the most relevant department</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+    <div class="feature-card">
+        <h3>🧠 Intelligent Questioning</h3>
+        <p>AI-driven interactive questioning that adapts to your skill level and project needs</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+    <div class="feature-card">
+        <h3>💬 AI Mentor Support</h3>
+        <p>Get real-time guidance and suggestions from your personal AI mentor throughout the process</p>
+    </div>
+    """, unsafe_allow_html=True)
+
 st.markdown("""
 **✨ Magical Prompt Creation** - Generate professional prompts in minutes through intelligent AI questioning. 
 The system automatically understands your needs and creates ready-to-use prompts while teaching you the art of prompt engineering.
@@ -157,12 +237,22 @@ if st.session_state.workflow_state == 'initial':
         
         # Display existing chat messages if any
         if hasattr(st.session_state, 'chat_messages') and st.session_state.chat_messages:
-            st.markdown("**Previous Chat:**")
+            st.markdown("**💬 Previous Conversation:**")
             for message in st.session_state.chat_messages[-3:]:  # Show last 3 messages
                 if message['role'] == 'user':
-                    st.markdown(f"**You:** {message['content']}")
+                    st.markdown(f"""
+                    <div class="user-input">
+                        <strong>👤 You:</strong><br>
+                        {message['content']}
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.markdown(f"**AI Mentor:** {message['content']}")
+                    st.markdown(f"""
+                    <div class="ai-response">
+                        <strong>🤖 AI Mentor:</strong><br>
+                        {message['content']}
+                    </div>
+                    """, unsafe_allow_html=True)
             st.markdown("---")
         
         # Chat input for questions
@@ -197,29 +287,40 @@ if st.session_state.workflow_state == 'initial':
                         User Profile: Learning prompt engineering
                         """
                         
+                        agents = GeminiPromptGeneratorAgents()
                         ai_response = agents._call_gemini_api(
-                            f"""You are an intelligent AI mentor with deep expertise in project development and prompt engineering.
-                            
-                            CONVERSATION CONTEXT:
-                            {context}
-                            
-                            USER'S QUESTION: "{initial_mentor_input}"
-                            
-                            RESPONSE GUIDELINES:
-                            1. **Direct Answer**: Provide a specific, actionable answer to their question
-                            2. **Context Awareness**: Reference their original request and current situation
-                            3. **Personalized Guidance**: Give advice tailored to their specific project and goals
-                            4. **Next Steps**: Provide clear, specific next steps they can take immediately
-                            5. **Follow-up Questions**: Ask 1-2 relevant follow-up questions to understand their needs better
-                            
-                            IMPORTANT: Be specific, avoid generic advice, and provide concrete examples relevant to their situation.
-                            
-                            Format your response as:
-                            - Direct answer to their question
-                            - Specific guidance for their situation
-                            - Clear next steps
-                            - 1-2 follow-up questions to better understand their needs""",
-                            "AI Mentor"
+                            f"""You are an advanced AI mentor with deep expertise in project development, prompt engineering, and business strategy.
+
+CONVERSATION CONTEXT:
+{context}
+
+USER'S QUESTION: "{initial_mentor_input}"
+
+ADVANCED MENTORING CAPABILITIES:
+- Sophisticated problem analysis with multiple perspectives
+- Industry-specific insights and best practices
+- Strategic thinking and long-term planning
+- Technical expertise across all business domains
+- Adaptive guidance based on user skill level
+
+RESPONSE STRUCTURE:
+1. **Intelligent Analysis**: Deep understanding of their situation and needs
+2. **Strategic Insights**: Provide advanced, actionable insights beyond basic advice
+3. **Contextual Guidance**: Reference their specific project and goals
+4. **Professional Examples**: Include sophisticated examples and case studies
+5. **Forward-Looking Suggestions**: Suggest next steps with strategic thinking
+6. **Skill Development**: Offer learning opportunities and growth suggestions
+
+RESPONSE FORMAT:
+- **Analysis**: Sophisticated understanding of their question
+- **Strategic Answer**: Advanced, actionable guidance
+- **Contextual Examples**: Relevant examples from your expertise
+- **Next Steps**: Strategic next steps with reasoning
+- **Learning Opportunities**: Suggest how they can grow from this
+- **Follow-up Questions**: Intelligent questions to deepen understanding
+
+IMPORTANT: Provide highly sophisticated, professional-level guidance that demonstrates deep expertise and strategic thinking.""",
+                            "Advanced AI Mentor"
                         )
                         
                         st.session_state.chat_messages.append({

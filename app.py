@@ -422,12 +422,12 @@ elif st.session_state.workflow_state == 'awaiting_answers':
                     answer = st.selectbox(
                         "Choose an option:",
                         options=question['options'],
-                        key=f"q_{question['id']}"
+                        key=f"q_initial_{question['id']}"
                     )
                 else:
                     answer = st.text_area(
                         "Your answer:",
-                        key=f"q_{question['id']}",
+                        key=f"q_initial_{question['id']}",
                         height=80
                     )
                 
@@ -577,12 +577,12 @@ elif st.session_state.workflow_state == 'awaiting_answers':
                     answer = st.selectbox(
                         "Choose an option:",
                         options=question['options'],
-                        key=f"q_{question['id']}"
+                        key=f"q_continue_{question['id']}"
                     )
                 else:
                     answer = st.text_area(
                         "Your answer:",
-                        key=f"q_{question['id']}",
+                        key=f"q_continue_{question['id']}",
                         height=80
                     )
                 

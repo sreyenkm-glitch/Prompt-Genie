@@ -1,0 +1,14 @@
+# AI Prompt Generator Environment Variables
+
+# Google Gemini API Configuration
+GEMINI_API_KEY=your-gemini-api-key-here
+
+# Application Settings
+APP_TITLE=AI Intelligent Prompt Generator
+APP_DESCRIPTION=Generate structured prompts for various departments using Google Gemini AI
+
+# Department Configuration
+DEFAULT_DEPARTMENT=General
+
+# Logging
+LOG_LEVEL=INFO

@@ -1,22 +1,21 @@
-# Core dependencies for AI Prompt Generator
+# Core dependencies for AI Prompt Generator - Python 3.13 compatible
 streamlit==1.28.1
-requests>=2.31.0
+requests==2.31.0
 
-# Additional utilities
+# Additional utilities - Python 3.13 compatible versions
 python-dotenv==1.0.0
-pydantic==2.5.0
 typing-extensions==4.8.0
 
 # UI enhancements
 streamlit-option-menu==0.3.6
 streamlit-extras==0.3.6
 
-# Data handling - using compatible versions for Windows
-pandas>=2.0.0
-numpy>=1.24.0
+# Data handling - Python 3.13 compatible
+pandas==1.5.3
+numpy==1.24.3
 
 # File operations
 pyyaml==6.0.1
 
 # Google Gemini API
-google-generativeai>=0.3.0
+google-generativeai==0.3.2

@@ -149,94 +149,94 @@ if st.session_state.workflow_state == 'initial':
         )
         
         submitted = st.form_submit_button("🚀 Start", type="primary")
+    
+    # Automatic AI Mentor Chat Detection (Outside the form)
+    # AI Mentor Chat Extension (Always available)
+    with st.expander("💬 Need Help? Ask Your AI Mentor", expanded=False):
+        st.info("🤖 Your AI mentor is here to help with your request!")
         
-        # Automatic AI Mentor Chat Detection
-        # AI Mentor Chat Extension (Always available)
-        with st.expander("💬 Need Help? Ask Your AI Mentor", expanded=False):
-            st.info("🤖 Your AI mentor is here to help with your request!")
-            
-            # Display existing chat messages if any
-            if hasattr(st.session_state, 'chat_messages') and st.session_state.chat_messages:
-                st.markdown("**Previous Chat:**")
-                for message in st.session_state.chat_messages[-3:]:  # Show last 3 messages
-                    if message['role'] == 'user':
-                        st.markdown(f"**You:** {message['content']}")
-                    else:
-                        st.markdown(f"**AI Mentor:** {message['content']}")
-                st.markdown("---")
-            
-            # Chat input for questions
-            initial_mentor_input = st.text_area(
-                "Ask your AI mentor:",
-                placeholder="Need help understanding? Want suggestions? Ask anything!",
-                height=80,
-                key="initial_mentor_chat_input"
-            )
-            
-            initial_mentor_submitted = st.button("💬 Ask Mentor", type="primary")
-            
-            if initial_mentor_submitted and initial_mentor_input.strip():
-                    # Add user message
-                    if not hasattr(st.session_state, 'chat_messages'):
-                        st.session_state.chat_messages = []
-                    
-                    st.session_state.chat_messages.append({
-                        'role': 'user',
-                        'content': initial_mentor_input,
-                        'timestamp': 'now'
-                    })
-                    
-                    # Get AI response
-                    with st.spinner("🤖 AI mentor is thinking..."):
-                        try:
-                            # Get enhanced context for better responses
-                            context = f"""
-                            Original Request: {user_request}
-                            Current Input: {initial_mentor_input}
-                            Conversation Stage: Initial guidance
-                            User Profile: Learning prompt engineering
-                            """
+        # Display existing chat messages if any
+        if hasattr(st.session_state, 'chat_messages') and st.session_state.chat_messages:
+            st.markdown("**Previous Chat:**")
+            for message in st.session_state.chat_messages[-3:]:  # Show last 3 messages
+                if message['role'] == 'user':
+                    st.markdown(f"**You:** {message['content']}")
+                else:
+                    st.markdown(f"**AI Mentor:** {message['content']}")
+            st.markdown("---")
+        
+        # Chat input for questions
+        initial_mentor_input = st.text_area(
+            "Ask your AI mentor:",
+            placeholder="Need help understanding? Want suggestions? Ask anything!",
+            height=80,
+            key="initial_mentor_chat_input"
+        )
+        
+        initial_mentor_submitted = st.button("💬 Ask Mentor", type="primary")
+        
+        if initial_mentor_submitted and initial_mentor_input.strip():
+                # Add user message
+                if not hasattr(st.session_state, 'chat_messages'):
+                    st.session_state.chat_messages = []
+                
+                st.session_state.chat_messages.append({
+                    'role': 'user',
+                    'content': initial_mentor_input,
+                    'timestamp': 'now'
+                })
+                
+                # Get AI response
+                with st.spinner("🤖 AI mentor is thinking..."):
+                    try:
+                        # Get enhanced context for better responses
+                        context = f"""
+                        Original Request: {user_request}
+                        Current Input: {initial_mentor_input}
+                        Conversation Stage: Initial guidance
+                        User Profile: Learning prompt engineering
+                        """
+                        
+                        ai_response = agents._call_gemini_api(
+                            f"""You are an intelligent AI mentor with deep expertise in project development and prompt engineering.
                             
-                            ai_response = agents._call_gemini_api(
-                                f"""You are an intelligent AI mentor with deep expertise in project development and prompt engineering.
-                                
-                                CONVERSATION CONTEXT:
-                                {context}
-                                
-                                USER'S QUESTION: "{initial_mentor_input}"
-                                
-                                RESPONSE GUIDELINES:
-                                1. **Direct Answer**: Provide a specific, actionable answer to their question
-                                2. **Context Awareness**: Reference their original request and current situation
-                                3. **Personalized Guidance**: Give advice tailored to their specific project and goals
-                                4. **Next Steps**: Provide clear, specific next steps they can take immediately
-                                5. **Follow-up Questions**: Ask 1-2 relevant follow-up questions to understand their needs better
-                                
-                                IMPORTANT: Be specific, avoid generic advice, and provide concrete examples relevant to their situation.
-                                
-                                Format your response as:
-                                - Direct answer to their question
-                                - Specific guidance for their situation
-                                - Clear next steps
-                                - 1-2 follow-up questions to better understand their needs""",
-                                "AI Mentor"
-                            )
+                            CONVERSATION CONTEXT:
+                            {context}
                             
-                            st.session_state.chat_messages.append({
-                                'role': 'assistant',
-                                'content': ai_response,
-                                'timestamp': 'now'
-                            })
+                            USER'S QUESTION: "{initial_mentor_input}"
                             
-                            # Clear the input field
-                            st.session_state.initial_mentor_chat_input = ""
-                            st.rerun()
+                            RESPONSE GUIDELINES:
+                            1. **Direct Answer**: Provide a specific, actionable answer to their question
+                            2. **Context Awareness**: Reference their original request and current situation
+                            3. **Personalized Guidance**: Give advice tailored to their specific project and goals
+                            4. **Next Steps**: Provide clear, specific next steps they can take immediately
+                            5. **Follow-up Questions**: Ask 1-2 relevant follow-up questions to understand their needs better
                             
-                        except Exception as e:
-                            st.error(f"Error getting AI response: {str(e)}")
-                            st.error(f"Full error: {e}")
-                            import traceback
-                            st.error(f"Traceback: {traceback.format_exc()}")
+                            IMPORTANT: Be specific, avoid generic advice, and provide concrete examples relevant to their situation.
+                            
+                            Format your response as:
+                            - Direct answer to their question
+                            - Specific guidance for their situation
+                            - Clear next steps
+                            - 1-2 follow-up questions to better understand their needs""",
+                            "AI Mentor"
+                        )
+                        
+                        st.session_state.chat_messages.append({
+                            'role': 'assistant',
+                            'content': ai_response,
+                            'timestamp': 'now'
+                        })
+                        
+                        # Clear the input field
+                        st.session_state.initial_mentor_chat_input = ""
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"Error getting AI response: {str(e)}")
+                        st.error(f"Full error: {e}")
+                        import traceback
+                        st.error(f"Traceback: {traceback.format_exc()}")
         
         if submitted and user_request.strip():
             with st.spinner("🤖 Analyzing your request..."):

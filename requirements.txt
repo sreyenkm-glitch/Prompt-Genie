@@ -4,8 +4,10 @@ requests>=2.31.0
 
 # Additional utilities
 python-dotenv==1.0.0
-pydantic==2.5.0
-typing-extensions==4.8.0
+# Use a pydantic version with prebuilt wheels for Python 3.13
+pydantic>=2.9.2
+# Align with pydantic on Python 3.13
+typing-extensions>=4.12.2,<5
 
 # UI enhancements
 streamlit-option-menu==0.3.6
@@ -13,7 +15,8 @@ streamlit-extras==0.3.6
 
 # Data handling - using compatible versions for Windows
 pandas>=2.0.0
-numpy>=1.24.0
+# Ensure compatibility with Streamlit 1.28.x which requires numpy<2
+numpy>=1.24.0,<2
 
 # File operations
 pyyaml==6.0.1

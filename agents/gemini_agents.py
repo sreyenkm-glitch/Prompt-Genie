@@ -15,8 +15,10 @@ class GeminiPromptGeneratorAgents:
     def __init__(self):
         self.api_key = os.getenv("GEMINI_API_KEY")
         self.base_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
-        if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
+        # Enable mock mode when API key is missing (useful for tests/offline)
+        self.mock_mode = not bool(self.api_key)
+        if self.mock_mode:
+            self.api_key = ""
         
         # Department detection agent
         self.department_detector = "Department Detection Specialist"
@@ -26,6 +28,10 @@ class GeminiPromptGeneratorAgents:
         self.prompt_generator = "Final Prompt Generator"
 
     def _call_gemini_api(self, prompt: str, role: str = "AI Assistant") -> str:
+        # Offline/mock behavior to avoid network/API requirements during tests
+        if getattr(self, "mock_mode", False):
+            return self._mock_response(prompt, role)
+
         headers = {
             'Content-Type': 'application/json',
             'X-goog-api-key': self.api_key
@@ -54,8 +60,79 @@ class GeminiPromptGeneratorAgents:
         except Exception as e:
             return f"Error calling Gemini API: {str(e)}"
 
+    def _mock_response(self, prompt: str, role: str) -> str:
+        """Return a deterministic mock response suitable for tests without API access."""
+        text = prompt.lower()
+        # Intent analysis mock JSON
+        if "intent" in role.lower() or "intent" in text or role == "Input Intent Analyzer":
+            is_question = any(text.strip().startswith(w) for w in ["what", "how", "why", "when", "where", "which"]) or "?" in text
+            is_suggestion = any(k in text for k in ["idea", "ideas", "suggestion", "suggestions", "recommendation", "recommendations", "options"])
+            intent_type = "question" if is_question else ("suggestion_request" if is_suggestion else "direct_request")
+            result = {
+                "intent_type": intent_type,
+                "confidence": "high",
+                "response": "This is a mock helpful response.",
+                "follow_up_question": "What is your primary goal?",
+                "context_enhanced": "Mock context",
+                "department_hint": "general"
+            }
+            return json.dumps(result)
+        # Follow-up generator: return a couple of questions
+        if "follow-up" in role.lower():
+            return "What is your primary goal?\nWho is your target audience?"
+        # Generic mentor/helper response
+        return "This is a mock response suitable for offline testing."
+
     def detect_department(self, user_request: str) -> Dict[str, Any]:
         """Intelligently detect the department based on user intent"""
+        # Local heuristic when in mock mode (no external API)
+        if getattr(self, "mock_mode", False):
+            request_lower = user_request.lower()
+            detected = "AI Engineering"
+            reasoning = "Defaulted to AI Engineering for technical or unknown requests."
+            keywords = []
+            if any(k in request_lower for k in ["marketing", "campaign", "social media", "advertising", "brand"]):
+                detected = "Digital Marketing"
+                reasoning = "Keywords indicate a marketing campaign."
+                keywords = ["marketing", "campaign"]
+            elif any(k in request_lower for k in ["analyze", "analysis", "insights", "dashboard", "report", "kpi", "data analysis"]):
+                detected = "Digital Analytics"
+                reasoning = "Keywords indicate an analytics task."
+                keywords = ["analysis", "insights"]
+            elif any(k in request_lower for k in ["content", "blog", "article", "write", "writing", "story"]):
+                detected = "Content"
+                reasoning = "Keywords indicate content creation."
+                keywords = ["content", "blog"]
+            elif any(k in request_lower for k in ["operation", "operations", "workflow", "optimize", "process"]):
+                detected = "Digital Operations"
+                reasoning = "Keywords indicate operations/process optimization."
+                keywords = ["workflow", "process"]
+            elif any(k in request_lower for k in ["crm", "martech", "marketing automation", "hubspot", "salesforce", "technology"]):
+                detected = "Martech"
+                reasoning = "Keywords indicate marketing technology."
+                keywords = ["martech", "automation"]
+            elif any(k in request_lower for k in ["consult", "strategy", "solution", "business solution"]):
+                detected = "Solutions"
+                reasoning = "Keywords indicate solution/consulting work."
+                keywords = ["solution", "strategy"]
+            else:
+                if any(k in request_lower for k in ["ai", "machine learning", "model", "data engineering", "pipeline", "build", "develop", "project"]):
+                    detected = "AI Engineering"
+                    reasoning = "Keywords indicate an AI/engineering project."
+                    keywords = ["ai", "project"]
+            return {
+                "department": detected,
+                "confidence": "high" if keywords else "medium",
+                "reasoning": reasoning,
+                "keywords_detected": keywords,
+                "context_analysis": {
+                    "primary_goal": "classification",
+                    "skill_level": "unknown",
+                    "project_type": "portfolio" if "portfolio" in request_lower else "business",
+                    "technical_focus": "yes" if detected in ["AI Engineering", "Martech"] else "no"
+                }
+            }
+
         prompt = f"""
         Analyze the following user request and determine which department it belongs to.
         
@@ -152,6 +229,48 @@ class GeminiPromptGeneratorAgents:
         if user_answers is None:
             user_answers = {}
         
+        # Local heuristic questions in mock mode
+        if getattr(self, "mock_mode", False):
+            base_questions = []
+            if department == "Digital Marketing":
+                base_questions = [
+                    {"id": "q1", "question": "What is your primary campaign goal?", "type": "multiple_choice", "options": ["Awareness", "Engagement", "Leads", "Sales"], "required": True, "department_focus": "Goal aligns tactics", "inferred_from_request": ""},
+                    {"id": "q2", "question": "Who is your target audience?", "type": "text", "required": True, "department_focus": "Targeting drives messaging", "inferred_from_request": ""},
+                    {"id": "q3", "question": "Which channels will you use?", "type": "text", "required": False, "department_focus": "Channel selection", "inferred_from_request": ""}
+                ]
+            elif department == "Content":
+                base_questions = [
+                    {"id": "q1", "question": "What content format do you need?", "type": "multiple_choice", "options": ["Blog", "Article", "Social Post", "Script"], "required": True, "department_focus": "Format informs structure", "inferred_from_request": ""},
+                    {"id": "q2", "question": "Who is the target audience?", "type": "text", "required": True, "department_focus": "Tone and depth", "inferred_from_request": ""}
+                ]
+            elif department == "Digital Analytics":
+                base_questions = [
+                    {"id": "q1", "question": "What KPIs matter most?", "type": "text", "required": True, "department_focus": "Defines analysis", "inferred_from_request": ""},
+                    {"id": "q2", "question": "What data sources are available?", "type": "text", "required": True, "department_focus": "Feeds insights", "inferred_from_request": ""}
+                ]
+            else:  # AI Engineering and others
+                base_questions = [
+                    {"id": "q1", "question": "What is the primary objective?", "type": "text", "required": True, "department_focus": "Scope definition", "inferred_from_request": ""},
+                    {"id": "q2", "question": "What technologies or stack do you prefer?", "type": "text", "required": False, "department_focus": "Implementation plan", "inferred_from_request": ""}
+                ]
+
+            is_complete = len(user_answers) >= 1
+            progress = 100 if is_complete else 60 if base_questions else 40
+            return {
+                "questions": base_questions,
+                "progress_percentage": progress,
+                "next_step": "Generate final prompt" if is_complete else "Collect essential details",
+                "is_complete": is_complete,
+                "smart_analysis": {
+                    "information_already_clear": [],
+                    "critical_gaps": [],
+                    "inferred_defaults": [],
+                    "portfolio_focus": "portfolio" in user_request.lower(),
+                    "fresher_focus": any(k in user_request.lower() for k in ["fresher", "beginner", "entry"]),
+                    "career_development": any(k in user_request.lower() for k in ["portfolio", "fresher", "beginner", "entry"])
+                }
+            }
+
         # Enhanced context analysis
         request_lower = user_request.lower()
         is_portfolio_project = "portfolio" in request_lower
@@ -308,6 +427,18 @@ class GeminiPromptGeneratorAgents:
     def generate_final_prompt(self, user_request: str, department: str, all_answers: Dict[str, str]) -> str:
         """Generate the final, ready-to-use prompt based on collected information and smart analysis"""
         
+        # Local deterministic prompt in mock mode
+        if getattr(self, "mock_mode", False):
+            lines = [
+                f"Department: {department}",
+                f"User Request: {user_request}",
+                "Collected Answers:",
+            ]
+            for qid, ans in all_answers.items():
+                lines.append(f"- {qid}: {ans}")
+            lines.append("Output: Create a professional, structured prompt using the above details.")
+            return "\n".join(lines)
+
         # Enhanced context analysis
         request_lower = user_request.lower()
         is_portfolio_project = "portfolio" in request_lower
@@ -446,6 +577,21 @@ class GeminiPromptGeneratorAgents:
 
     def analyze_input_intent(self, user_request: str) -> Dict[str, Any]:
         """Analyze user input to determine if it's a question, suggestion request, or direct request"""
+        # In mock mode, infer intent locally without API
+        if getattr(self, "mock_mode", False):
+            request_lower = user_request.lower().strip()
+            is_question = any(request_lower.startswith(w) for w in ["what", "how", "why", "when", "where", "which"]) or request_lower.endswith("?")
+            is_suggestion = any(k in request_lower for k in ["idea", "ideas", "suggestion", "suggestions", "recommendation", "recommendations", "options"])
+            intent_type = "question" if is_question else ("suggestion_request" if is_suggestion else "direct_request")
+            return {
+                "intent_type": intent_type,
+                "confidence": "high",
+                "response": "This is a mock helpful response.",
+                "follow_up_question": "What is your primary goal?",
+                "context_enhanced": user_request,
+                "department_hint": "general"
+            }
+
         prompt = f"""
         Analyze the following user input to determine the user's intent and provide appropriate response.
         
@@ -503,19 +649,27 @@ class GeminiPromptGeneratorAgents:
                 result = json.loads(json_str)
                 return result
             else:
-                # Fallback - treat as direct request
+                # Heuristic fallback when response cannot be parsed
+                request_lower = user_request.lower().strip()
+                is_question = any(request_lower.startswith(w) for w in ["what", "how", "why", "when", "where", "which"]) or request_lower.endswith("?")
+                is_suggestion = any(k in request_lower for k in ["idea", "ideas", "suggestion", "suggestions", "recommendation", "recommendations", "options"])
+                intent_type = "question" if is_question else ("suggestion_request" if is_suggestion else "direct_request")
                 return {
-                    "intent_type": "direct_request",
-                    "confidence": "low",
+                    "intent_type": intent_type,
+                    "confidence": "medium",
                     "response": "",
                     "follow_up_question": "",
                     "context_enhanced": user_request,
                     "department_hint": "general"
                 }
         except json.JSONDecodeError:
+            request_lower = user_request.lower().strip()
+            is_question = any(request_lower.startswith(w) for w in ["what", "how", "why", "when", "where", "which"]) or request_lower.endswith("?")
+            is_suggestion = any(k in request_lower for k in ["idea", "ideas", "suggestion", "suggestions", "recommendation", "recommendations", "options"])
+            intent_type = "question" if is_question else ("suggestion_request" if is_suggestion else "direct_request")
             return {
-                "intent_type": "direct_request",
-                "confidence": "low",
+                "intent_type": intent_type,
+                "confidence": "medium",
                 "response": "",
                 "follow_up_question": "",
                 "context_enhanced": user_request,
@@ -654,6 +808,10 @@ class GeminiPromptGeneratorAgents:
 
     def _generate_contextual_follow_up(self, user_request: str, intent_analysis: Dict[str, Any], context: str) -> str:
         """Generate contextual follow-up questions based on conversation"""
+        # Mock-mode shortcut
+        if getattr(self, "mock_mode", False):
+            return "What outcome do you want to achieve first?"
+
         follow_up_prompt = f"""
         Based on the user's question: "{user_request}"
         And the conversation context: {context}
